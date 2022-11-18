@@ -52,7 +52,7 @@ start-golang-rly:
 	./network/relayer/interchain-acc-config/rly-start.sh
 
 kill-dev:
-	@echo "Killing icad and removing previous data"
+	@echo "Killing ununifid and removing previous data"
 	-@rm -rf ./data
 	-@killall ununifid 2>/dev/null
 	-@killall osmosisd 2>/dev/null

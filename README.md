@@ -18,48 +18,23 @@ https://ibc.cosmos.network/main/apps/interchain-accounts/overview.html
 
 ## Setup
 
-1. Clone this repository and build the application binary
-
-```bash
-git clone https://github.com/cosmos/interchain-accounts-demo.git
-cd interchain-accounts
-
-make install 
-```
-
-2. Download and install an IBC relayer. ([hermes](https://hermes.informal.systems/), [go relayer](https://github.com/cosmos/relayer) or both )
+1. Download and install an IBC relayer. ([hermes](https://hermes.informal.systems/)
 ```bash
 # hermes
 cargo install --version 0.15.0 ibc-relayer-cli --bin hermes --locked
 
-#go relayer (make sure to use v2.0.0-rc4 or later!)
-git clone https://github.com/cosmos/relayer.git
-cd relayer && git checkout v2.0.0-rc4
-make install
 ```
 
-3. Bootstrap two chains, configure the relayer and create an IBC connection (on top of clients that are created as well)
+2. Bootstrap two chains, configure the relayer and create an IBC connection (on top of clients that are created as well)
 ```bash
 # hermes
 make init-hermes
-
-# go relayer
-make init-golang-relayer
 ```
 
-:warning: **NOTE:** When you want to use both relayers interchangeably, using both of these `make` commands will set up two seperate connections (which is not needed and can lead to confusion). In the case of using both relayers, perform:
-```bash
-make init-golang-rly
-./network/hermes/restore-keys.sh
-```
-
-4. Start the relayer
+3. Start the relayer
 ```bash
 #hermes
 make start-hermes
-
-#go relayer
-make start-golang-rly
 ```
 
 :exclamation: **NOTE:** It is abstracted away in the script files, but in case you want to manually run `rly start` with interchain accounts, you will need to add this flag: `-p events` to it.
@@ -95,7 +70,7 @@ ununifid tx intertx register --from $WALLET_1 --connection-id connection-0 --cha
 ununifid query intertx interchainaccounts connection-0 $WALLET_1 --home ./data/test-1 --node tcp://localhost:16657
 
 # Store the interchain account address by parsing the query result: cosmos1hd0f4u7zgptymmrn55h3hy20jv2u0ctdpq23cpe8m9pas8kzd87smtf8al
-export ICA_ADDR=$(icad query intertx interchainaccounts connection-0 $WALLET_1 --home ./data/test-1 --node tcp://localhost:16657 -o json | jq -r '.interchain_account_address') && echo $ICA_ADDR
+export ICA_ADDR=$(ununifid query intertx interchainaccounts connection-0 $WALLET_1 --home ./data/test-1 --node tcp://localhost:16657 -o json | jq -r '.interchain_account_address') && echo $ICA_ADDR
 ```
 
 > This is the situation after registering the ICA. A channel has been created and an ICA has been registered on the host.
@@ -108,13 +83,13 @@ Note this is executed on the host chain to provide the account with an initial b
 
 ```bash
 # Query the interchain account balance on the host chain. It should be empty.
-icad q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
+ununifid q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
 
 # Send funds to the interchain account.
-icad tx bank send $WALLET_3 $ICA_ADDR 10000stake --chain-id test-2 --home ./data/test-2 --node tcp://localhost:26657 --keyring-backend test -y
+ununifid tx bank send $WALLET_3 $ICA_ADDR 10000stake --chain-id test-2 --home ./data/test-2 --node tcp://localhost:26657 --keyring-backend test -y
 
 # Query the balance once again and observe the changes
-icad q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
+ununifid q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
 ```
 
 > This is the situation after funding the ICA.
@@ -132,7 +107,7 @@ This command accepts a generic `sdk.Msg` JSON payload or path to JSON file as an
 cat ./data/test-2/config/genesis.json | jq -r '.app_state.genutil.gen_txs[0].body.messages[0].validator_address'
 
 # Submit a staking delegation tx using the interchain account via ibc
-icad tx intertx submit \
+ununifid tx intertx submit \
 '{
     "@type":"/cosmos.staking.v1beta1.MsgDelegate",
     "delegator_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
@@ -144,12 +119,12 @@ icad tx intertx submit \
 }' --connection-id connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
 
 # Alternatively provide a path to a JSON file
-icad tx intertx submit [path/to/msg.json] --connection-id connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
+ununifid tx intertx submit [path/to/msg.json] --connection-id connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
 
 # Wait until the relayer has relayed the packet
 
 # Inspect the staking delegations on the host chain
-icad q staking delegations-to cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k --home ./data/test-2 --node tcp://localhost:26657
+ununifid q staking delegations-to cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh3k --home ./data/test-2 --node tcp://localhost:26657
 ```
 
 > This is the situation before after sending the staking tx. The user who is the owner of the ICA has staked funds on the host chain to a validator of choice through an interchain accounts packet.
@@ -159,7 +134,7 @@ icad q staking delegations-to cosmosvaloper1qnk2n4nlkpw9xfqntladh74w6ujtulwnmxnh
 
 ```bash
 # Submit a bank send tx using the interchain account via ibc
-icad tx intertx submit \
+ununifid tx intertx submit \
 '{
     "@type":"/cosmos.bank.v1beta1.MsgSend",
     "from_address":"cosmos15ccshhmp0gsx29qpqq6g4zmltnnvgmyu9ueuadh9y2nc5zj0szls5gtddz",
@@ -173,12 +148,12 @@ icad tx intertx submit \
 }' --connection-id connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
 
 # Alternatively provide a path to a JSON file
-icad tx intertx submit [path/to/msg.json] --connection-id connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
+ununifid tx intertx submit [path/to/msg.json] --connection-id connection-0 --from $WALLET_1 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
 
 # Wait until the relayer has relayed the packet
 
 # Query the interchain account balance on the host chain
-icad q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
+ununifid q bank balances $ICA_ADDR --chain-id test-2 --node tcp://localhost:26657
 ```
 
 #### Testing timeout scenario
@@ -204,26 +179,26 @@ Observe both channel ends by querying the IBC channels for each node.
 
 ```bash
 # inspect channel ends on test chain 1
-icad q ibc channel channels --home ./data/test-1 --node tcp://localhost:16657
+ununifid q ibc channel channels --home ./data/test-1 --node tcp://localhost:16657
 
 # inspect channel ends on test chain 2
-icad q ibc channel channels --home ./data/test-2 --node tcp://localhost:26657
+ununifid q ibc channel channels --home ./data/test-2 --node tcp://localhost:26657
 ```
 
 6. Open a new channel for the existing interchain account on the same connection.
 
 ```bash
-icad tx intertx register --from $WALLET_1 --connection-id connection-0 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
+ununifid tx intertx register --from $WALLET_1 --connection-id connection-0 --chain-id test-1 --home ./data/test-1 --node tcp://localhost:16657 --keyring-backend test -y
 ```
 
 7. Inspect the IBC channels once again and observe a new creately interchain accounts channel with `STATE_OPEN`.
 
 ```bash
 # inspect channel ends on test chain 1
-icad q ibc channel channels --home ./data/test-1 --node tcp://localhost:16657
+ununifid q ibc channel channels --home ./data/test-1 --node tcp://localhost:16657
 
 # inspect channel ends on test chain 2
-icad q ibc channel channels --home ./data/test-2 --node tcp://localhost:26657
+ununifid q ibc channel channels --home ./data/test-2 --node tcp://localhost:26657
 ```
 
 ## Collaboration
