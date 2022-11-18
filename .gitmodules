@@ -1,0 +1,6 @@
+[submodule "osmosis"]
+	path = osmosis
+	url = https://github.com/osmosis-labs/osmosis
+[submodule "ununifi"]
+	path = ununifi
+	url = https://github.com/UnUniFi/chain

@@ -1,0 +1,13 @@
+vue/node_modules
+vue/dist
+.vscode
+secret.yml
+build
+.idea
+.vscode
+
+# data for local chains
+data
+
+.vscode
+vendor
