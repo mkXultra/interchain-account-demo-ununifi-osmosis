@@ -22,6 +22,7 @@ https://ibc.cosmos.network/main/apps/interchain-accounts/overview.html
 ```bash
 # hermes
 cargo install --version 0.15.0 ibc-relayer-cli --bin hermes --locked
+cargo install --version 1.0.0 ibc-relayer-cli --bin hermes --locked
 
 ```
 

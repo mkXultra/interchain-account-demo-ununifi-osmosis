@@ -1,28 +1,8 @@
 #!/bin/bash
 
-BINARY=ununifid
-BINARY_ICA_HOST=osmosisd
-CHAIN_DIR=./data
-CHAINID_1=test-1
-CHAINID_2=test-2
-
-VAL_MNEMONIC_1="clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion"
-VAL_MNEMONIC_2="angry twist harsh drastic left brass behave host shove marriage fall update business leg direct reward object ugly security warm tuna model broccoli choice"
-WALLET_MNEMONIC_1="banner spread envelope side kite person disagree path silver will brother under couch edit food venture squirrel civil budget number acquire point work mass"
-WALLET_MNEMONIC_2="veteran try aware erosion drink dance decade comic dawn museum release episode original list ability owner size tuition surface ceiling depth seminar capable only"
-WALLET_MNEMONIC_3="vacuum burst ordinary enact leaf rabbit gather lend left chase park action dish danger green jeans lucky dish mesh language collect acquire waste load"
-WALLET_MNEMONIC_4="open attitude harsh casino rent attitude midnight debris describe spare cancel crisp olive ride elite gallery leaf buffalo sheriff filter rotate path begin soldier"
-RLY_MNEMONIC_1="alley afraid soup fall idea toss can goose become valve initial strong forward bright dish figure check leopard decide warfare hub unusual join cart"
-RLY_MNEMONIC_2="record gift you once hip style during joke field prize dust unique length more pencil transfer quit train device arrive energy sort steak upset"
-
-P2PPORT_1=16656
-P2PPORT_2=26656
-RPCPORT_1=16657
-RPCPORT_2=26657
-RESTPORT_1=1316
-RESTPORT_2=1317
-ROSETTA_1=8080
-ROSETTA_2=8081
+# Load shell variables
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+. $SCRIPT_DIR/variables.sh
 
 # Stop if it is already running 
 if pgrep -x "$BINARY" >/dev/null; then
@@ -50,6 +30,9 @@ echo "Initializing $CHAINID_2..."
 $BINARY init test --home $CHAIN_DIR/$CHAINID_1 --chain-id=$CHAINID_1
 $BINARY_ICA_HOST init test --home $CHAIN_DIR/$CHAINID_2 --chain-id=$CHAINID_2
 
+# change main token
+sed -i -e 's/\bstake\b/'$BINARY_MAIN_TOKEN'/g' $CHAIN_DIR/$CHAINID_1/config/genesis.json
+
 echo "Adding genesis accounts..."
 echo $VAL_MNEMONIC_1 | $BINARY keys add val1 --home $CHAIN_DIR/$CHAINID_1 --recover --keyring-backend=test
 echo $VAL_MNEMONIC_2 | $BINARY_ICA_HOST keys add val2 --home $CHAIN_DIR/$CHAINID_2 --recover --keyring-backend=test
@@ -60,17 +43,17 @@ echo $WALLET_MNEMONIC_4 | $BINARY_ICA_HOST keys add wallet4 --home $CHAIN_DIR/$C
 echo $RLY_MNEMONIC_1 | $BINARY keys add rly1 --home $CHAIN_DIR/$CHAINID_1 --recover --keyring-backend=test 
 echo $RLY_MNEMONIC_2 | $BINARY_ICA_HOST keys add rly2 --home $CHAIN_DIR/$CHAINID_2 --recover --keyring-backend=test 
 
-$BINARY add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAINID_1 keys show val1 --keyring-backend test -a) 100000000000stake  --home $CHAIN_DIR/$CHAINID_1
-$BINARY_ICA_HOST add-genesis-account $($BINARY_ICA_HOST --home $CHAIN_DIR/$CHAINID_2 keys show val2 --keyring-backend test -a) 100000000000stake  --home $CHAIN_DIR/$CHAINID_2
-$BINARY add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAINID_1 keys show wallet1 --keyring-backend test -a) 100000000000stake  --home $CHAIN_DIR/$CHAINID_1
-$BINARY add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAINID_1 keys show wallet2 --keyring-backend test -a) 100000000000stake  --home $CHAIN_DIR/$CHAINID_1
+$BINARY add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAINID_1 keys show val1 --keyring-backend test -a) 100000000000$BINARY_MAIN_TOKEN --home $CHAIN_DIR/$CHAINID_1
+$BINARY_ICA_HOST add-genesis-account $($BINARY_ICA_HOST --home $CHAIN_DIR/$CHAINID_2 keys show val2 --keyring-backend test -a) 100000000000stake,100000000000uosmo  --home $CHAIN_DIR/$CHAINID_2
+$BINARY add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAINID_1 keys show wallet1 --keyring-backend test -a) 100000000000$BINARY_MAIN_TOKEN  --home $CHAIN_DIR/$CHAINID_1
+$BINARY add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAINID_1 keys show wallet2 --keyring-backend test -a) 100000000000$BINARY_MAIN_TOKEN  --home $CHAIN_DIR/$CHAINID_1
 $BINARY_ICA_HOST add-genesis-account $($BINARY_ICA_HOST --home $CHAIN_DIR/$CHAINID_2 keys show wallet3 --keyring-backend test -a) 100000000000stake  --home $CHAIN_DIR/$CHAINID_2
-$BINARY_ICA_HOST add-genesis-account $($BINARY_ICA_HOST --home $CHAIN_DIR/$CHAINID_2 keys show wallet4 --keyring-backend test -a) 100000000000stake  --home $CHAIN_DIR/$CHAINID_2
-$BINARY add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAINID_1 keys show rly1 --keyring-backend test -a) 100000000000stake  --home $CHAIN_DIR/$CHAINID_1
-$BINARY_ICA_HOST add-genesis-account $($BINARY_ICA_HOST --home $CHAIN_DIR/$CHAINID_2 keys show rly2 --keyring-backend test -a) 100000000000stake  --home $CHAIN_DIR/$CHAINID_2
+$BINARY_ICA_HOST add-genesis-account $($BINARY_ICA_HOST --home $CHAIN_DIR/$CHAINID_2 keys show wallet4 --keyring-backend test -a) 100000000000stake,100000000000uosmo  --home $CHAIN_DIR/$CHAINID_2
+$BINARY add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAINID_1 keys show rly1 --keyring-backend test -a) 100000000000$BINARY_MAIN_TOKEN  --home $CHAIN_DIR/$CHAINID_1
+$BINARY_ICA_HOST add-genesis-account $($BINARY_ICA_HOST --home $CHAIN_DIR/$CHAINID_2 keys show rly2 --keyring-backend test -a) 100000000000stake,100000000000uosmo  --home $CHAIN_DIR/$CHAINID_2
 
 echo "Creating and collecting gentx..."
-$BINARY gentx val1 7000000000stake --home $CHAIN_DIR/$CHAINID_1 --chain-id $CHAINID_1 --keyring-backend test
+$BINARY gentx val1 7000000000$BINARY_MAIN_TOKEN --home $CHAIN_DIR/$CHAINID_1 --chain-id $CHAINID_1 --keyring-backend test
 $BINARY_ICA_HOST gentx val2 7000000000stake --home $CHAIN_DIR/$CHAINID_2 --chain-id $CHAINID_2 --keyring-backend test
 $BINARY collect-gentxs --home $CHAIN_DIR/$CHAINID_1
 $BINARY_ICA_HOST collect-gentxs --home $CHAIN_DIR/$CHAINID_2
@@ -95,7 +78,15 @@ sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/$CHAINID_2/config/app.to
 sed -i -e 's/swagger = false/swagger = true/g' $CHAIN_DIR/$CHAINID_2/config/app.toml
 sed -i -e 's#"tcp://0.0.0.0:1317"#"tcp://0.0.0.0:'"$RESTPORT_2"'"#g' $CHAIN_DIR/$CHAINID_2/config/app.toml
 sed -i -e 's#":8080"#":'"$ROSETTA_2"'"#g' $CHAIN_DIR/$CHAINID_2/config/app.toml
-sed -i -e 's/minimum-gas-prices = ""/minimum-gas-prices = "0stake"/' $CHAIN_DIR/$CHAINID_2/config/app.toml;
+
+# change genesis.json
+# CHAINID_1
+
+# sed -i -e 's/minimum-gas-prices = ""/minimum-gas-prices = '\"0$BINARY_MAIN_TOKEN\"/'' $CHAIN_DIR/$CHAINID_1/config/app.toml;
+# sed -i 's/mode = "full"/mode = "validator"/' $CHAIN_DIR/$CHAINID_1/config/config.toml;
+sed -i -e 's/minimum-gas-prices = ""/minimum-gas-prices = "0stake"/' $CHAIN_DIR/$CHAINID_1/config/app.toml
+# CHAINID_2
+sed -i -e 's/minimum-gas-prices = ""/minimum-gas-prices = "0stake"/' $CHAIN_DIR/$CHAINID_2/config/app.toml
 
 # Update host chain genesis to allow x/bank/MsgSend ICA tx execution
 sed -i -e 's/\"allow_messages\": \[\]/"allow_messages": \["*"\] /' $CHAIN_DIR/$CHAINID_2/config/genesis.json

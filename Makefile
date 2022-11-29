@@ -41,10 +41,6 @@ init-golang-rly: kill-dev install
 	@echo "Initializing relayer..."
 	./network/relayer/interchain-acc-config/rly-init.sh
 
-start: 
-	@echo "Starting up test network"
-	./network/start.sh
-
 start-hermes:
 	./network/hermes/start.sh
 
@@ -56,3 +52,12 @@ kill-dev:
 	-@rm -rf ./data
 	-@killall ununifid 2>/dev/null
 	-@killall osmosisd 2>/dev/null
+
+start:init-hermes start-hermes
+	@echo "init then start"
+
+make-pools:
+	@echo "make pools"
+	./scripts/ibc-transfer.sh
+	./scripts/setup_superfluid.sh
+	@echo "created stake/uosmo uguu/uosmo pools"
