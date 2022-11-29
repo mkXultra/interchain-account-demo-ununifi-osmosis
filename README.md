@@ -37,6 +37,11 @@ make init-hermes
 make start-hermes
 ```
 
+4(optional). Create pools
+```bash
+make create-pools
+```
+
 :exclamation: **NOTE:** It is abstracted away in the script files, but in case you want to manually run `rly start` with interchain accounts, you will need to add this flag: `-p events` to it.
 
 > This is the situation *before* `make init-*`. The blockchains are not live yet.
