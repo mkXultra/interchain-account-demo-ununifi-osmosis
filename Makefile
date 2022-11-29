@@ -56,8 +56,8 @@ kill-dev:
 start:init-hermes start-hermes
 	@echo "init then start"
 
-make-pools:
-	@echo "make pools"
+create-pools:
+	@echo "create pools"
 	./scripts/ibc-transfer.sh
 	./scripts/setup_superfluid.sh
 	@echo "created stake/uosmo uguu/uosmo pools"
